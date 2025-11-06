@@ -81,7 +81,7 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   // Inicia servidor Modbus
-  mb.server();
+  mb.server(); // Porta Padrão 502
   mb.addHreg(REG_DISTANCIA_FRENTE);
   mb.addHreg(REG_DISTANCIA_TRAS);
   mb.addHreg(REG_VELOCIDADE);
@@ -104,7 +104,7 @@ void loop() {
   //mb.Hreg(REG_VELOCIDADE, velocidade);
   //mb.Hreg(REG_DIRECAO, direcao);
 
-  mb.task(); 
+  mb.task(); // se não funcionar, testar mb.poll()
 
   // Essa parte aqui depois que ele se tornar autônomo, nós vamos tirar!!!
   // Mas por enquanto, vamos comandá-lo via Modbus
@@ -118,26 +118,15 @@ void loop() {
     // Definir sentido de rotação do motor 
     // (0 - neutro, 1 - frente, 2 - ré, 3 - freada)
     // Definir velocidade (valor de 0 a 255)
-    definirMovimento(nova_direcao, nova_velocidade);
-    mb.Hreg(REG_VELOCIDADE, velocidade);
-    mb.Hreg(REG_DIRECAO, direcao);
-  } 
-  else if (comando == 2) {
-    // Definir sentido de rotação do motor 
-    // (0 - neutro, 1 - frente, 2 - ré, 3 - freada)
-    // Definir velocidade (valor de 0 a 255)
     // Definir tempo do movimento
     movimentoCronometrado(nova_direcao, nova_velocidade, tempo_movimento);
-    mb.Hreg(REG_VELOCIDADE, velocidade);
-    mb.Hreg(REG_DIRECAO, direcao);
-    mb.Hreg(REG_DIRECAO, tempo_movimento);
   }
-  else if (comando == 3){
+  else if (comando == 2){
     // Manter distância do objeto da frente
 
   }
 
-  delay(1000);
+  //delay(1000);
 }
 
 // --------------------------------
@@ -276,10 +265,19 @@ void movimentoCronometrado(int novoSentido, int velocidadeMax, int tempoTotal){
     }
 
     definirVelocidade(velocidadeAtual);
+    mb.Hreg(REG_DISTANCIA_FRENTE, distancia_frente);
+    mb.Hreg(REG_DISTANCIA_TRAS, distancia_tras);
+    mb.Hreg(REG_VELOCIDADE, velocidadeAtual);
+    mb.Hreg(REG_DIRECAO, direcao);
+    mb.task();
   }
 
   if(velocidade != 0){
     definirVelocidade(0);
+    mb.Hreg(REG_DISTANCIA_FRENTE, distancia_frente);
+    mb.Hreg(REG_DISTANCIA_TRAS, distancia_tras);
+    mb.Hreg(REG_VELOCIDADE, velocidade);
+    mb.Hreg(REG_DIRECAO, direcao);
   }
 }
 
