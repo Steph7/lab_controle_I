@@ -32,12 +32,14 @@ const int motor_esq_ENB = 11; // PWM
 
 ////// Variáveis auxiliares
 const int distancia_seguranca = 30;
+int velocidade = 0; // começa parado
+int direcao = 0; // começa no neutro (sem sentido)
 
 // --------------------------------
 
 ////// OUTROS
 // Configurações da rede Wi-Fi
-const char* rede = "Nome-Rede-WiFi";
+const char* rede = "Nome-Rede-WiFi"; // <----- trocar aqui
 const char* senha = "Senha-WiFi";
 
 // Modbus
@@ -58,11 +60,8 @@ ModbusIP mb;
 void setup() {
   Serial.begin(115200);
   // Ultrassônico
-  pinMode(TRIG_frente,OUTPUT);
-  pinMode(ECHO_frente,INPUT);
-
-  pinMode(TRIG_tras,OUTPUT);
-  pinMode(ECHO_tras,INPUT);
+  pinMode(TRIG_frente,OUTPUT); pinMode(ECHO_frente,INPUT); // Frente
+  pinMode(TRIG_tras,OUTPUT); pinMode(ECHO_tras,INPUT);     // Trás
 
   // Ponte H / Motores
   pinMode(motor_dir_IN1, OUTPUT); pinMode(motor_dir_IN2, OUTPUT); pinMode(motor_dir_ENA, OUTPUT); // Motor Direito
@@ -88,7 +87,6 @@ void setup() {
   mb.addHreg(REG_DIRECAO);
   mb.addHreg(REG_COMANDO);
   mb.addHreg(REG_ERRO);
-  
 }
 
 // --------------------------------
@@ -97,8 +95,6 @@ void setup() {
 void loop() {
   int distancia_frente = medir_distancia(TRIG_frente,ECHO_frente);
   int distancia_tras = medir_distancia(TRIG_tras,ECHO_tras);
-  int velocidade = 0; // atualizar depois
-  int direcao = 1; // pode ser 1 (frente) ou 2 (trás)
 
   // Teste WiFi
   mb.Hreg(REG_DISTANCIA_FRENTE, distancia_frente);
@@ -113,25 +109,19 @@ void loop() {
   int comando = mb.Hreg(REG_COMANDO);
   int nova_velocidade = mb.Hreg(REG_VELOCIDADE);
   int nova_direcao = mb.Hreg(REG_DIRECAO);
-  
-  if (nova_velocidade != velocidade) {
-    velocidade = nova_velocidade;
-  }
-  mb.Hreg(REG_VELOCIDADE, velocidade);
-
-  if (nova_direcao != direcao) {
-    direcao = nova_direcao;
-  }
-  mb.Hreg(REG_DIRECAO, direcao);
 
   // COMANDOS vindos do cliente Modbus
   if (comando == 1) {
-    // Liga motor frente ou ré
+    // Definir sentido de rotação do motor 
+    // (0 - neutro, 1 - frente, 2 - ré, 3 - freada)
+    // Definir velocidade (valor de 0 a 255)
     definirMovimento(nova_direcao, nova_velocidade);
+    mb.Hreg(REG_VELOCIDADE, velocidade);
+    mb.Hreg(REG_DIRECAO, direcao);
   } 
-  else if (comando == 0) {
-    // Desliga motor
-    desligarMotor();
+  else if (comando == 2) {
+    // Manter distância do objeto da frente
+    
   }
 
   delay(1000);
@@ -150,11 +140,22 @@ int medir_distancia(int pinotrig,int pinoecho){
   return pulseIn(pinoecho,HIGH)/58;
 }
 
-void definirVelocidade(int v){
-  // Intervalo aceito de 0–255
-  analogWrite(motor_dir_ENA, v); 
-  analogWrite(motor_esq_ENB, v); 
-  delay(50);
+void definirVelocidade(int novo_vel) {
+  if (velocidade > novo_vel) {
+    for (int v = velocidade; v <= novo_vel; v++) {
+      analogWrite(motor_dir_ENA, v);
+      analogWrite(motor_esq_ENB, v);
+      delay(10);
+    }
+  } else {
+    for (int v = velocidade; v >= novo_vel; v--) {
+      analogWrite(motor_dir_ENA, v);
+      analogWrite(motor_esq_ENB, v);
+      delay(10);
+    }
+  }
+
+  velocidade = novo_vel; 
 }
 
 void moverFrente(){
@@ -173,19 +174,32 @@ void moverTras(){
   delay(50);
 }
 
-void desligarMotor(){
+void zerarSentido(){
   digitalWrite(motor_dir_IN1, LOW);
   digitalWrite(motor_dir_IN2, LOW);
   digitalWrite(motor_esq_IN3, LOW);
   digitalWrite(motor_esq_IN4, LOW);
   delay(50);
+}
 
-  definirVelocidade(0);
+void freadaAbrupta(){
+  digitalWrite(motor_dir_IN1, HIGH);
+  digitalWrite(motor_dir_IN2, HIGH);
+  digitalWrite(motor_esq_IN3, HIGH);
+  digitalWrite(motor_esq_IN4, HIGH);
   delay(50);
 }
 
-void definirMovimento(int direcao, int velocidade){
-  if (direcao == 1){
+void definirSentido(int novoSentido){
+  if (direcao != novoSentido){
+    direcao = novoSentido;
+  }
+
+  if (direcao = 0){
+    // Deixar no neutro
+    zerarSentido();
+  } 
+  else if(direcao == 1){
   // Frente
     moverFrente();
   }
@@ -193,18 +207,42 @@ void definirMovimento(int direcao, int velocidade){
   // Trás (Ré)
     moverTras();
   }
+  else if (direcao == 3){
+  // Frear bruscamente
+    freadaAbrupta();
+  }
   else{
     mb.Hreg(REG_ERRO);
   }
+}
+
+void definirMovimento(int novoSentido, int velocidade) {
+  // Tem que reduzir a velocidade até parar ou até quase parar
+  definirVelocidade(0);
+
+  definirSentido(novoSentido);
+  delay(100);
+
   definirVelocidade(velocidade);
   delay(1000);
 }
 
-int ajustarVelocidade(int dist_menor, int dist_maior){
+void desligarMotor(){
+  definirMovimento(0,0);
+  delay(50);
+}
+
+//////// AÇÃO DE CONTROLE (versão sem controlador)
+/*
+void ajustarVelocidade(int dist_menor, int dist_maior){
   delta_D = dist_maior - dist_menor;
   // Delta_D deve ser inversamente proporcional a Delta_V
+  // Essa equação não considera o tempo gasto para a mudança de velocidade
   novaVelocidade = (1/delta_D) * velocidade;
-  return novaVelocidade;
+  
+  definirMovimento(novaVelocidade);
+
+  velocidade = novaVelocidade;
 }
 
 void controlarVelocidade(int dist_frente, int dist_tras){
@@ -215,5 +253,6 @@ void controlarVelocidade(int dist_frente, int dist_tras){
 
   }
 }
+*/
 
 // --------------------------------
