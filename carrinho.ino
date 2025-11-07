@@ -114,18 +114,15 @@ void loop() {
   int nova_direcao = mb.Hreg(REG_DIRECAO);
   int tempo_movimento = mb.Hreg(REG_TEMPO);
 
+  ajustarVelocidade(distancia_frente, distancia_tras);
+
+  /*
   // COMANDOS vindos do cliente Modbus
   if (comando == 1) {
-    // Definir sentido de rotação do motor 
-    // (0 - neutro, 1 - frente, 2 - ré, 3 - freada)
-    // Definir velocidade (valor de 0 a 255)
-    // Definir tempo do movimento
-    movimentoCronometrado(nova_direcao, nova_velocidade, tempo_movimento);
   }
   else if (comando == 2){
-    // Manter distância do objeto da frente
-
   }
+  */
 
   //delay(1000);
 }
@@ -295,18 +292,29 @@ void desligarMotor(){
   delay(50);
 }
 
-void ajustarVelocidade(int dist_atual){
-  delta_D = dist_atual - distancia_seguranca;
-  if(delta_D == 0){
+void ajustarVelocidade(int dist_frente, int distancia_tras){
+  if (direcao == 1){
+    delta_D = dist_frente - distancia_seguranca;
+  }
+  else if (direcao == 2){
+    delta_D = dist_tras - distancia_seguranca;
+  }
+
+  if((delta_D >=0) && (delta_D < 3)){
     // manter velocidade constante
     movimentoCronometrado(direcao, velocidade);
   }
   else{
-    if(delta_D > 0){
-      direcao = 1;
-    }
-    else if(delta_D < 3){
-      direcao = 2;
+    if(delta_D >= 3){
+      // inverter sentido de direcao
+      if (direcao == 1){
+        direcao = 2;
+        delta_D = dist_tras - distancia_seguranca;
+      }
+      else if (direcao == 2){
+        direcao = 1;
+        delta_D = dist_frente - distancia_seguranca;
+      }
     }
 
     // Delta_D deve ser inversamente proporcional a Delta_V
