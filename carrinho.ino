@@ -67,7 +67,7 @@ void setup() {
 
   // Ponte H / Motores
   pinMode(motor_dir_IN1, OUTPUT); pinMode(motor_dir_IN2, OUTPUT); pinMode(motor_dir_ENA, OUTPUT); // Motor Direito
-  pinMode(motor_esq_IN3, OUTPUT); pinMode(motor_esq_IN4, OUTPUT); pinMode(Emotor_esq_NB, OUTPUT); // Motor Esquerdo
+  pinMode(motor_esq_IN3, OUTPUT); pinMode(motor_esq_IN4, OUTPUT); pinMode(motor_esq_ENB, OUTPUT); // Motor Esquerdo
 
   // Wifi
   WiFi.begin(rede, senha);
@@ -292,7 +292,9 @@ void desligarMotor(){
   delay(50);
 }
 
-void ajustarVelocidade(int dist_frente, int distancia_tras){
+void ajustarVelocidade(int dist_frente, int dist_tras){
+  int delta_D;
+  int novaVelocidade;
   if (direcao == 1){
     delta_D = dist_frente - distancia_seguranca;
   }
