@@ -34,6 +34,7 @@ const int motor_esq_ENB = 11; // PWM
 const int distancia_seguranca = 30;
 int velocidade = 0; // começa parado
 int direcao = 0; // começa no neutro (sem sentido)
+int tempoTotal = 100; // segundos
 
 // --------------------------------
 
@@ -232,9 +233,8 @@ void definirMovimento(int novoSentido, int velocidade) {
   definirVelocidade(velocidade);
   delay(1000);
 }
- 
 
-void movimentoCronometrado(int novoSentido, int velocidadeMax, int tempoTotal){
+void movimentoCronometrado(int novoSentido, int velocidadeMax){
   unsigned long tempoInicio = millis();
   unsigned long tempoFim = tempoInicio + tempoTotal * 1000UL;
   unsigned long agora;
@@ -243,6 +243,13 @@ void movimentoCronometrado(int novoSentido, int velocidadeMax, int tempoTotal){
     definirVelocidade(0); 
     definirSentido(novoSentido);
     direcao = novoSentido;
+  }
+
+  if(velocidadeMax > 255){
+    velocidadeMax = 255;
+  }
+  else if(velocidadeMax < 0){
+    velocidadeMax = 0;
   }
   
   while((agora = millis()) < tempoFim){
@@ -270,6 +277,8 @@ void movimentoCronometrado(int novoSentido, int velocidadeMax, int tempoTotal){
     mb.Hreg(REG_VELOCIDADE, velocidadeAtual);
     mb.Hreg(REG_DIRECAO, direcao);
     mb.task();
+
+    velocidade = velocidadeAtual;
   }
 
   if(velocidade != 0){
@@ -281,77 +290,39 @@ void movimentoCronometrado(int novoSentido, int velocidadeMax, int tempoTotal){
   }
 }
 
-
 void desligarMotor(){
   definirMovimento(0,0);
   delay(50);
 }
 
-//////// AÇÃO DE CONTROLE (versão sem controlador)
-/*
-float ajustarVelocidade(int dist_atual, int dist_seg){
-  delta_D = dist_maior - dist_menor;
+void ajustarVelocidade(int dist_atual){
+  delta_D = dist_atual - distancia_seguranca;
   if(delta_D == 0){
-    return velocidade;
+    // manter velocidade constante
+    movimentoCronometrado(direcao, velocidade);
   }
-  else if(delta_D < 0){
-    direcao = 2;
+  else{
+    if(delta_D > 0){
+      direcao = 1;
+    }
+    else if(delta_D < 3){
+      direcao = 2;
+    }
+
     // Delta_D deve ser inversamente proporcional a Delta_V
     // Essa equação não considera o tempo gasto para a mudança de velocidade
     novaVelocidade = (1.0/abs(delta_D)) * velocidade;
 
-    if(novaVelocidade > 255){
-      novaVelocidade = 255;
-    }
-    else if(novaVelocidade < 0){
-      novaVelocidade = 0;
-    }
-
-    velocidade = novaVelocidade;
-
-    return velocidade;
-  }
-  else if(delta_D < 0){
-    direcao = 2;
-    // Delta_D deve ser inversamente proporcional a Delta_V
-    // Essa equação não considera o tempo gasto para a mudança de velocidade
-    novaVelocidade = (1.0/abs(delta_D)) * velocidade;
-
-    if(novaVelocidade > 255){
-      novaVelocidade = 255;
-    }
-    else if(novaVelocidade < 0){
-      novaVelocidade = 0;
-    }
-
-    velocidade = novaVelocidade;
-
-    return velocidade;
+    movimentoCronometrado(direcao, novaVelocidade);
   }
 }
 
-void controlarVelocidade(int dist_frente, int dist_tras){
-  // Considerando que o carrinho normalmente está indo pra frente
-  if (dist_atual > dist_seg){
-    // Tudo sob controle, então pode aumentar a velocidade
-    dist_atual = dist_maior;
-    dist_seg = dist_menor;
-  }
-  else (dist_atual <= dist_seg){
-    // Deve reduzir a velocidade ou acionar a ré
-    dist_atual = dist_menor;
-    dist_seg = dist_maior;
-  }
-  
-
-  if((dist_frente < distancia_seguranca) && (dist_tras > distancia_seguranca)){
-    // Mover para trás
-    nova_velocidade = ajustarVelocidade(dist_tras, distancia_seguranca);
-    definirMovimento(2, nova_velocidade)
-  }
-  else{
-
-  }
+//////// AÇÃO DE CONTROLE (versão sem controlador)
+/*
+void controlarVelocidade(int dist_objeto){
+  // Projetar de modo que a lógica sirva nos dois sentidos
+  // Tanto para quando ele estiver considerando o dist_frente
+  // quanto quando ele estiver considerando dist_tras
 }
 */
 
