@@ -27,6 +27,10 @@ void setup() {
 // ---- LOOP -----
 void loop() {
   movimentoCronometrado(1,200);
+
+  // Se quiser testar a função ajustarVelocidade() 
+  // é só juntar com o arquivo ultrassonico2.ino
+
   delay(1000)
 }
 
