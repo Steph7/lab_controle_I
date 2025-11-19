@@ -1,4 +1,16 @@
+////// Pacotes ou Bibliotecas
+#include <SoftwareSerial.h>
+
 ////// Configuração de Pinos 
+
+// Traseiro
+const int TRIG_tras = 5;
+const int ECHO_tras = 4;
+// Dianteiro
+const int TRIG_frente = 3;
+const int ECHO_frente = 2;
+
+
 //// Módulo Ponte H - L298N
 // Motor Direito
 const int motor_dir_IN1 = 7;
@@ -16,9 +28,20 @@ int velocidade = 0;
 int direcao = 0; 
 int tempoTotal = 100;
 
-// ---- SET UP -----
+//// Módulo Wifi
+SoftwareSerial espSerial(10, 11); // RX, TX do Arduino conectados ao TX, RX do ESP01
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600);       
+  espSerial.begin(115200);
+
+  // Configura sensores
+  pinMode(TRIG_frente, OUTPUT);
+  pinMode(ECHO_frente, INPUT);
+  pinMode(TRIG_tras, OUTPUT);
+  pinMode(ECHO_tras, INPUT);
+
+  // Configura motores
   pinMode(motor_dir_ENA, OUTPUT); 
   pinMode(motor_dir_IN1, OUTPUT);
   pinMode(motor_dir_IN2, OUTPUT);
@@ -28,17 +51,29 @@ void setup() {
   pinMode(motor_esq_IN4, OUTPUT);  
 }
 
-// ---- LOOP -----
 void loop() {
-  movimentoCronometrado(1,200);
+  int distancia_frente = medir_distancia(TRIG_frente, ECHO_frente);
+  int distancia_tras = medir_distancia(TRIG_tras, ECHO_tras);
 
-  // Se quiser testar a função ajustarVelocidade() 
-  // é só juntar com o arquivo ultrassonico2.ino
+  // Envia os dados para o ESP8266
+  espSerial.print(distancia_frente);
+  espSerial.print(",");
+  espSerial.println(distancia_tras);
 
-  delay(1000)
+  delay(500);
 }
 
 // ---- Funções -----
+
+int medir_distancia(int pinotrig,int pinoecho){
+  digitalWrite(pinotrig,LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinotrig,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinotrig,LOW);
+
+  return pulseIn(pinoecho,HIGH)/58;
+}
 
 void definirVelocidade(int novo_vel) {
   if(novo_vel > 255){
