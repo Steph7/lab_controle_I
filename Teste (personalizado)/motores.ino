@@ -65,7 +65,7 @@ void definirVelocidade(int novo_vel) {
   velocidade = novo_vel; 
 }
 
-void moverTras(){
+void moverFrente(){
   digitalWrite(motor_dir_IN1, HIGH);
   digitalWrite(motor_dir_IN2, LOW);
   digitalWrite(motor_esq_IN3, HIGH);
@@ -73,7 +73,7 @@ void moverTras(){
   //delay(50);
 }
 
-void moverFrente(){
+void moverTras(){
   digitalWrite(motor_dir_IN1, LOW);
   digitalWrite(motor_dir_IN2, HIGH);
   digitalWrite(motor_esq_IN3, LOW);
