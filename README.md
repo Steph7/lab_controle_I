@@ -8,7 +8,7 @@ O arquivo carrinho.ino reune os pontos fundamentais de cada módulo.
 ## Configuração de Pinos
 
 Esquema de ligação de Pinos do Carrinho:
-![Image](https://github.com/Steph7/lab_controle_I/blob/master/Carrinho%20-%20Trabalho%20Final.png?raw=true)
+![Image](https://raw.githubusercontent.com/Steph7/lab_controle_I/refs/heads/master/Carrinho%20-%20Trabalho%20Final.png)
 
 ```
 //// Sensor ultrassônico
