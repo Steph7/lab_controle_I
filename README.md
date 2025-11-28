@@ -79,9 +79,12 @@ As demais funções que estão no arquivo motores.ino, não precisam ser utiliza
 
 ### Módulo Wifi
 
-A verificar como será feita a comunicação.
+```
+SoftwareSerial esp(10, 11); // RX, TX
+```
+Foram utilizadas os pinos 10 e 11 do Arduino, já que oferecem uma transmissão de dados com mais estabilidade.
 
-
+Os dados estão sendo transmitidos via serial do Arduino para o ESP8266. Para fazer a conexão com a IHM (Elipse), foi utilizado Modbus TCP.
 
 
 Obs.: *Apelidado carinhosamente de Zezetinha, em homenagem a avó da Amanda.
