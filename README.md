@@ -8,7 +8,7 @@ O arquivo carrinho.ino reune os pontos fundamentais de cada módulo.
 ## Configuração de Pinos
 
 Esquema de ligação de Pinos do Carrinho:
-![Image](https://github.com/Steph7/lab_controle_I/blob/master/Carrinho%20-%20Trabalho%20Final.png?raw=true)
+![Image](https://github.com/Steph7/lab_controle_I/blob/master/Carrinho%20(v3)%20-%20Trabalho%20Final.png?raw=true)
 
 ```
 //// Sensor ultrassônico
@@ -28,7 +28,7 @@ const int motor_dir_ENA = 9; // PWM
 // Motor Esquerdo
 const int motor_esq_IN3 = 12;
 const int motor_esq_IN4 = 13;
-const int motor_esq_ENB = 11; // PWM
+const int motor_esq_ENB = 6; // PWM
 ```
 
 ## Sensores
