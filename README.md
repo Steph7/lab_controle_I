@@ -64,10 +64,10 @@ Os pinos do PWM são os que permitem regular a tensão aplicada nos motores. Os 
 
 São elas: moverFrente(), moverTras(), zerarSentido() e freadaAbrupta(). E têm o seguinte formato:
 
-Obs.: Na última versão do código moverFrente() já foi corrigida e corresponde ao carrinho ir para frente mesmo.
+Obs.: O carrinho continua indo pra frente com a função moverTras(). *moonwalker
 
 ```
-void moverFrente(){
+void moverTras(){
   digitalWrite(motor_dir_IN1, LOW);
   digitalWrite(motor_dir_IN2, HIGH);
   digitalWrite(motor_esq_IN3, LOW);
@@ -86,7 +86,7 @@ Foram utilizadas os pinos 10 e 11 do Arduino, já que oferecem uma transmissão 
 
 Os dados estão sendo transmitidos via serial do Arduino para o ESP8266. Para fazer a conexão com a IHM (Elipse), foi utilizado Modbus TCP.
 
-Obs.: Para que a conexão funcione sem problemas, é importante que a rede tem o nome e a senha conforme descritos no código.
+Obs.: Para que a conexão funcione sem problemas, é importante que a rede tenha o nome e a senha conforme descritos no código.
 
 
 Obs.: *Apelidado carinhosamente de Zezetinha, em homenagem a avó da Amanda.
