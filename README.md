@@ -86,5 +86,7 @@ Foram utilizadas os pinos 10 e 11 do Arduino, já que oferecem uma transmissão 
 
 Os dados estão sendo transmitidos via serial do Arduino para o ESP8266. Para fazer a conexão com a IHM (Elipse), foi utilizado Modbus TCP.
 
+Obs.: Para que a conexão funcione sem problemas, é importante que a rede tem o nome e a senha conforme descritos no código.
+
 
 Obs.: *Apelidado carinhosamente de Zezetinha, em homenagem a avó da Amanda.
